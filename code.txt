@@ -1,0 +1,79 @@
+Question 1 :
+Create a query that lists each movie, the film category it is
+ classified in, and the number of times it has been rented out. ?
+  ..........
+
+WITH t1 AS
+
+(select *
+FROM category c
+JOIN film_category fc
+ON c.category_id=fc.category_id
+JOIN film f
+ON f.film_id=fc.film_id
+JOIN inventory i
+ON i.film_id=f.film_id
+JOIN rental r
+ON r.inventory_id=i.inventory_id
+WHERE c.name IN ('Animation','children','classics','comedy',
+                 'family','music'))
+                 
+
+select t1.title film_title,t1.name
+category_name,COUNT(t1.title)
+rental_count
+from t1
+GROUP BY 1,2
+ORDER BY category_name,film_title
+___________________________________________________...
+Question 2:
+:Can you provide a table of movie titles and break them down into 4 levels
+ (Q1, Q2, Q3 and Q4) based on the quarters (25%, 50%, 75%) of the movie rental term across all categories?
+    ..........
+select  F.title , C.name, F.rental_duration,
+NTILE(4) OVER (ORDER by f.rental_duration ) AS standard_quartile
+FROM film_category fc
+JOIN category c 
+ON c.category_id = fc.category_id 
+JOIN film f 
+ON f.film_id = fc.film_id
+WHERE c.name 
+IN ('Animation' , 'Children' , 'Comedy' , 'Music' , 'Family' , 'Classics' )
+Order by 3
+
+________________________________________________...
+Questiom 3:
+Submit movie schedule, and movie presentations ?
+   .........
+
+SELECT  c.name, c.standard_quartile,
+           COUNT(c.standard_quartile)
+FROM
+(SELECT f.title,c.name ,f.rental_duration,
+          NTILE(4) OVER (ORDER BY f.rental_duration) AS standard_quartile
+FROM film_category fc
+JOIN category c
+ON c.category_id = fc.category_id
+JOIN film f
+ON f.film_id = fc.film_id
+WHERE c.name IN ('Animation','Family','Children','Comedy','Classics','Music')) c
+GROUP BY 1,2
+ORDER BY 1,2
+
+_______________________________________________________---
+Questiom 4:
+Write a query that returns the store ID of the market and the month of
+? the rental orders executed by each store of the month.
+   .............
+
+SELECT DATE_PART('MONTH', rental_date) months,
+ DATE_PART('YEAR', rental_date) years, store.store_id, COUNT(*)
+FROM rental r
+JOIN staff s
+  ON s.staff_id = r.staff_id
+JOIN store 
+  ON s.store_id = store.store_id
+GROUP BY 1,2,3
+order by  4 DESC
+
+
